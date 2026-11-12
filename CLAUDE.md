@@ -32,15 +32,18 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        registers every SDK handler on the monitor (tests use it too)
+src/monitor.js                    refresh cycles, devices, states, scene trigger, connection status
+src/hans.js                       HANS client (USGS), parsing, matching of the typed volcano names
+src/device.js                     device payloads (one per volcano, "nearby") and external ids
+src/messages.js                   texts in en/fr/de/es, dates, sentences
+src/actions.js                    scene action `read_volcanoes`, configuration action `check_now`
+src/widgets.js                    dashboard widget `volcanoes`
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+src/store.js, src/geo.js          /data persistence, great-circle distance
+gladys-assistant-integration.json manifest
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys
+test/                             node --test, SDK fake Gladys + fake HANS (recorded answers)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -251,3 +254,16 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## USGS HANS (cette intégration)
+
+- API publique sans clé, derrière Cloudflare : `https://volcanoes.usgs.gov/hans-public/api/` (doc HTML à
+  cette adresse). `volcano/getMonitoredVolcanoes` (~69 lignes, dont 2 résumés régionaux sans `vnum` à
+  ignorer), `volcano/getUSVolcanoes` (170 volcans, positions), `volcano/getCapElevated` (synopsis d'une
+  ligne des volcans à ORANGE/WATCH ou l'ayant été, clé `notice_identifier`).
+- Un volcan sans bulletin (Isanotski, 12/11/2026) a `notice_type_cd: ''`, `notice_identifier: null` et
+  `sent_unixtime: 0`. Types de bulletin : DU, WU, MU, IS, VV (VAN/VONA).
+- Aucune date de dernier changement de niveau dans l'API : l'intégration la note quand elle l'observe.
+- Identifiant d'appareil : le numéro Smithsonian `vnum` (stable). Clés figées : trigger `alert_changed`,
+  action `read_volcanoes`, widget `volcanoes`, champs `alert_level`, `aviation_color`, `direction`.
+- Le logo USGS (identité visuelle réservée) n'est pas utilisé : cover en pictogramme.

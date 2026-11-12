@@ -1,177 +1,723 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "USGS Volcanoes",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Alert levels of the US volcanoes (Hawaii, Alaska, Cascades, Yellowstone…) from the USGS",
+    "fr": "Niveaux d'alerte des volcans américains (Hawaï, Alaska, Cascades, Yellowstone…) publiés par l'USGS",
+    "de": "Warnstufen der US-Vulkane (Hawaii, Alaska, Kaskaden, Yellowstone…) vom USGS",
+    "es": "Niveles de alerta de los volcanes de EE. UU. (Hawái, Alaska, Cascadas, Yellowstone…) del USGS"
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-usgs-volcanoes:1.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-usgs-volcanoes/main/cover.png",
+  "categories": ["environment", "security"],
+  "transports": ["cloud"],
+  "countries": ["US"],
+  "location": true,
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your volcanoes",
+        "fr": "Vos volcans",
+        "de": "Deine Vulkane",
+        "es": "Sus volcanes"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "The USGS volcano observatories rate the monitored US volcanoes: alert level on the ground (Normal, Advisory, Watch, Warning) and aviation color code (Green to Red). Follow volcanoes by name, and/or all those around your house.",
+        "fr": "Les observatoires volcanologiques de l'USGS classent les volcans américains surveillés : niveau d'alerte au sol (Normal, Vigilance, Veille, Alerte) et code couleur aviation (vert à rouge). Suivez des volcans par leur nom, et/ou tous ceux autour de votre maison.",
+        "de": "Die Vulkanobservatorien des USGS bewerten die überwachten US-Vulkane: Warnstufe am Boden (Normal, Hinweis, Beobachtung, Warnung) und Luftfahrt-Farbcode (Grün bis Rot). Verfolge Vulkane nach Namen und/oder alle rund um dein Haus.",
+        "es": "Los observatorios volcanológicos del USGS clasifican los volcanes vigilados de EE. UU.: nivel de alerta en tierra (Normal, Aviso, Vigilancia, Alerta) y código de color de aviación (verde a rojo). Siga volcanes por su nombre y/o todos los que rodean su casa."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-usgs-volcanoes/blob/main/docs/en.md",
+          "label": {
+            "en": "Setup guide",
+            "fr": "Guide de configuration",
+            "de": "Einrichtungsanleitung",
+            "es": "Guía de configuración"
+          }
+        },
+        {
+          "url": "https://volcanoes.usgs.gov/hans-public/",
+          "label": {
+            "en": "USGS HANS",
+            "fr": "USGS HANS",
+            "de": "USGS HANS",
+            "es": "USGS HANS"
+          }
+        }
+      ]
+    },
+    {
+      "key": "volcanoes",
+      "type": "string",
+      "label": {
+        "en": "Followed volcanoes",
+        "fr": "Volcans suivis",
+        "de": "Verfolgte Vulkane",
+        "es": "Volcanes seguidos"
+      },
+      "description": {
+        "en": "Names separated by commas (Kilauea, Mount St. Helens…), volcano numbers, or an observatory (avo, calvo, cvo, hvo, nmi, yvo) for all its volcanoes. One device per volcano.",
+        "fr": "Noms séparés par des virgules (Kilauea, Mount St. Helens…), numéros de volcan, ou un observatoire (avo, calvo, cvo, hvo, nmi, yvo) pour tous ses volcans. Un appareil par volcan.",
+        "de": "Namen durch Kommas getrennt (Kilauea, Mount St. Helens…), Vulkannummern oder ein Observatorium (avo, calvo, cvo, hvo, nmi, yvo) für alle seine Vulkane. Ein Gerät pro Vulkan.",
+        "es": "Nombres separados por comas (Kilauea, Mount St. Helens…), números de volcán o un observatorio (avo, calvo, cvo, hvo, nmi, yvo) para todos sus volcanes. Un dispositivo por volcán."
+      },
+      "placeholder": {
+        "en": "e.g. Kilauea, Mount Rainier",
+        "fr": "ex. Kilauea, Mount Rainier",
+        "de": "z. B. Kilauea, Mount Rainier",
+        "es": "p. ej. Kilauea, Mount Rainier"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "radius",
+      "type": "select",
+      "label": {
+        "en": "Nearby volcanoes: radius",
+        "fr": "Volcans proches : rayon",
+        "de": "Vulkane in der Nähe: Radius",
+        "es": "Volcanes cercanos: radio"
+      },
+      "description": {
+        "en": "A \"Nearby volcanoes\" device gives the highest alert level of the monitored volcanoes within this distance of your house. Off: no such device.",
+        "fr": "Un appareil « Volcans proches » donne le niveau d'alerte le plus haut des volcans surveillés à cette distance de votre maison. Désactivé : pas d'appareil.",
+        "de": "Ein Gerät „Vulkane in der Nähe“ zeigt die höchste Warnstufe der überwachten Vulkane in diesem Umkreis um dein Haus. Aus: kein solches Gerät.",
+        "es": "Un dispositivo «Volcanes cercanos» da el nivel de alerta más alto de los volcanes vigilados a esta distancia de su casa. Desactivado: sin dispositivo."
+      },
+      "required": false,
+      "default": "200",
+      "options": [
+        {
+          "value": "0",
+          "label": {
+            "en": "Off",
+            "fr": "Désactivé",
+            "de": "Aus",
+            "es": "Desactivado"
+          }
+        },
+        {
+          "value": "50",
+          "label": {
+            "en": "50 km",
+            "fr": "50 km",
+            "de": "50 km",
+            "es": "50 km"
+          }
+        },
+        {
+          "value": "100",
+          "label": {
+            "en": "100 km",
+            "fr": "100 km",
+            "de": "100 km",
+            "es": "100 km"
+          }
+        },
+        {
+          "value": "200",
+          "label": {
+            "en": "200 km",
+            "fr": "200 km",
+            "de": "200 km",
+            "es": "200 km"
+          }
+        },
+        {
+          "value": "500",
+          "label": {
+            "en": "500 km",
+            "fr": "500 km",
+            "de": "500 km",
+            "es": "500 km"
+          }
+        },
+        {
+          "value": "1000",
+          "label": {
+            "en": "1,000 km",
+            "fr": "1 000 km",
+            "de": "1.000 km",
+            "es": "1000 km"
+          }
         }
       ]
     },
     {
       "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "type": "string",
+      "label": {
+        "en": "Centre latitude",
+        "fr": "Latitude du centre",
+        "de": "Breitengrad des Mittelpunkts",
+        "es": "Latitud del centro"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "Leave both coordinates empty to use the location of your house in Gladys.",
+        "fr": "Laissez les deux coordonnées vides pour utiliser la position de votre maison dans Gladys.",
+        "de": "Lass beide Koordinaten leer, um den Standort deines Hauses in Gladys zu verwenden.",
+        "es": "Deje ambas coordenadas vacías para usar la ubicación de su casa en Gladys."
+      },
+      "placeholder": {
+        "en": "e.g. 46.8523",
+        "fr": "ex. 46.8523",
+        "de": "z. B. 46.8523",
+        "es": "p. ej. 46.8523"
+      },
+      "required": false,
+      "default": ""
     },
     {
       "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "type": "string",
+      "label": {
+        "en": "Centre longitude",
+        "fr": "Longitude du centre",
+        "de": "Längengrad des Mittelpunkts",
+        "es": "Longitud del centro"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "description": {
+        "en": "Decimal degrees, west negative.",
+        "fr": "Degrés décimaux, ouest négatif.",
+        "de": "Dezimalgrad, Westen negativ.",
+        "es": "Grados decimales, oeste negativo."
+      },
+      "placeholder": {
+        "en": "e.g. -121.7603",
+        "fr": "ex. -121.7603",
+        "de": "z. B. -121.7603",
+        "es": "p. ej. -121.7603"
+      },
+      "required": false,
+      "default": ""
     },
     {
-      "key": "unit",
+      "key": "refresh_interval",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
+      "description": {
+        "en": "The observatories publish a few notices a day at most; a level change always comes with a notice.",
+        "fr": "Les observatoires publient quelques bulletins par jour au plus ; un changement de niveau vient toujours avec un bulletin.",
+        "de": "Die Observatorien veröffentlichen höchstens einige Meldungen am Tag; eine Stufenänderung kommt immer mit einer Meldung.",
+        "es": "Los observatorios publican unos pocos boletines al día como máximo; un cambio de nivel siempre llega con un boletín."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "15",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "10",
+          "label": {
+            "en": "10 minutes",
+            "fr": "10 minutes",
+            "de": "10 Minuten",
+            "es": "10 minutos"
+          }
+        },
+        {
+          "value": "15",
+          "label": {
+            "en": "15 minutes",
+            "fr": "15 minutes",
+            "de": "15 Minuten",
+            "es": "15 minutos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "30 minutes",
+            "fr": "30 minutes",
+            "de": "30 Minuten",
+            "es": "30 minutos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "60 minutes",
+            "fr": "60 minutes",
+            "de": "60 Minuten",
+            "es": "60 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the texts",
+        "fr": "Langue des textes",
+        "de": "Sprache der Texte",
+        "es": "Idioma de los textos"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Names of the devices and features (at their creation) and texts sent to scenes.",
+        "fr": "Noms des appareils et fonctionnalités (à leur création) et textes envoyés aux scènes.",
+        "de": "Namen der Geräte und Funktionen (bei ihrer Erstellung) und an Szenen gesendete Texte.",
+        "es": "Nombres de los dispositivos y funciones (al crearlos) y textos enviados a las escenas."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
-    }
-  ],
-  "actions": [
-    {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     },
     {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
+      "key": "about",
+      "type": "section",
+      "label": {
+        "en": "Sources and limits",
+        "fr": "Sources et limites",
+        "de": "Quellen und Grenzen",
+        "es": "Fuentes y límites"
+      },
+      "description": {
+        "en": "Data: USGS Volcano Hazards Program (public domain), read without account. Not affiliated with the USGS. Not a safety alert system: follow the official notices and local authorities.",
+        "fr": "Données : USGS Volcano Hazards Program (domaine public), lues sans compte. Non affiliée à l'USGS. Pas un système d'alerte de sécurité : suivez les bulletins officiels et les autorités locales.",
+        "de": "Daten: USGS Volcano Hazards Program (gemeinfrei), ohne Konto gelesen. Nicht mit dem USGS verbunden. Kein Sicherheitswarnsystem: Folge den offiziellen Meldungen und den örtlichen Behörden.",
+        "es": "Datos: USGS Volcano Hazards Program (dominio público), leídos sin cuenta. Sin afiliación con el USGS. No es un sistema de alerta de seguridad: siga los boletines oficiales y a las autoridades locales."
+      },
+      "links": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "url": "https://www.usgs.gov/programs/VHP/about-alert-levels",
+          "label": {
+            "en": "About the alert levels",
+            "fr": "À propos des niveaux",
+            "de": "Über die Warnstufen",
+            "es": "Acerca de los niveles"
+          }
         }
       ]
     }
   ],
+  "actions": [
+    {
+      "key": "check_now",
+      "label": {
+        "en": "Show the current levels",
+        "fr": "Afficher les niveaux actuels",
+        "de": "Aktuelle Stufen anzeigen",
+        "es": "Mostrar los niveles actuales"
+      },
+      "timeout_seconds": 60
+    }
+  ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "alert_changed",
+      "label": {
+        "en": "USGS volcano: alert level changed",
+        "fr": "Volcan USGS : niveau d'alerte changé",
+        "de": "USGS-Vulkan: Warnstufe geändert",
+        "es": "Volcán USGS: nivel de alerta cambiado"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "The alert level or aviation color code of a followed or nearby volcano changes. Leave a filter empty to accept any value.",
+        "fr": "Le niveau d'alerte ou le code couleur aviation d'un volcan suivi ou proche change. Laissez un filtre vide pour accepter toute valeur.",
+        "de": "Die Warnstufe oder der Luftfahrt-Farbcode eines verfolgten oder nahen Vulkans ändert sich. Lass einen Filter leer, um jeden Wert zu akzeptieren.",
+        "es": "El nivel de alerta o el código de color de aviación de un volcán seguido o cercano cambia. Deje un filtro vacío para aceptar cualquier valor."
       },
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "key": "alert_level",
+          "type": "multi_select",
+          "label": {
+            "en": "New alert level",
+            "fr": "Nouveau niveau d'alerte",
+            "de": "Neue Warnstufe",
+            "es": "Nuevo nivel de alerta"
+          },
+          "options": [
+            {
+              "value": "normal",
+              "label": {
+                "en": "Normal",
+                "fr": "Normal",
+                "de": "Normal",
+                "es": "Normal"
+              }
+            },
+            {
+              "value": "advisory",
+              "label": {
+                "en": "Advisory",
+                "fr": "Vigilance",
+                "de": "Hinweis",
+                "es": "Aviso"
+              }
+            },
+            {
+              "value": "watch",
+              "label": {
+                "en": "Watch",
+                "fr": "Veille",
+                "de": "Beobachtung",
+                "es": "Vigilancia"
+              }
+            },
+            {
+              "value": "warning",
+              "label": {
+                "en": "Warning",
+                "fr": "Alerte",
+                "de": "Warnung",
+                "es": "Alerta"
+              }
+            }
+          ]
         },
         {
-          "key": "target",
+          "key": "aviation_color",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "label": {
+            "en": "New aviation color",
+            "fr": "Nouvelle couleur aviation",
+            "de": "Neue Luftfahrtfarbe",
+            "es": "Nuevo color de aviación"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "green",
+              "label": {
+                "en": "Green",
+                "fr": "Vert",
+                "de": "Grün",
+                "es": "Verde"
+              }
+            },
+            {
+              "value": "yellow",
+              "label": {
+                "en": "Yellow",
+                "fr": "Jaune",
+                "de": "Gelb",
+                "es": "Amarillo"
+              }
+            },
+            {
+              "value": "orange",
+              "label": {
+                "en": "Orange",
+                "fr": "Orange",
+                "de": "Orange",
+                "es": "Naranja"
+              }
+            },
+            {
+              "value": "red",
+              "label": {
+                "en": "Red",
+                "fr": "Rouge",
+                "de": "Rot",
+                "es": "Rojo"
+              }
+            }
+          ]
+        },
+        {
+          "key": "direction",
+          "type": "select",
+          "label": {
+            "en": "Direction",
+            "fr": "Sens",
+            "de": "Richtung",
+            "es": "Sentido"
+          },
+          "options": [
+            {
+              "value": "raised",
+              "label": {
+                "en": "Raised",
+                "fr": "En hausse",
+                "de": "Erhöht",
+                "es": "En aumento"
+              }
+            },
+            {
+              "value": "lowered",
+              "label": {
+                "en": "Lowered",
+                "fr": "En baisse",
+                "de": "Gesenkt",
+                "es": "En descenso"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "alert_level",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Alert level (normal, advisory…)",
+            "fr": "Niveau d'alerte (normal, advisory…)",
+            "de": "Warnstufe (normal, advisory…)",
+            "es": "Nivel de alerta (normal, advisory…)"
+          }
+        },
+        {
+          "key": "aviation_color",
+          "type": "string",
+          "label": {
+            "en": "Aviation color (green, yellow…)",
+            "fr": "Couleur aviation (green, yellow…)",
+            "de": "Luftfahrtfarbe (green, yellow…)",
+            "es": "Color de aviación (green, yellow…)"
+          }
+        },
+        {
+          "key": "direction",
+          "type": "string",
+          "label": {
+            "en": "Direction (raised, lowered)",
+            "fr": "Sens (raised, lowered)",
+            "de": "Richtung (raised, lowered)",
+            "es": "Sentido (raised, lowered)"
+          }
+        },
+        {
+          "key": "volcano",
+          "type": "string",
+          "label": {
+            "en": "Volcano",
+            "fr": "Volcan",
+            "de": "Vulkan",
+            "es": "Volcán"
+          }
+        },
+        {
+          "key": "vnum",
+          "type": "string",
+          "label": {
+            "en": "Volcano number",
+            "fr": "Numéro du volcan",
+            "de": "Vulkannummer",
+            "es": "Número del volcán"
+          }
+        },
+        {
+          "key": "observatory",
+          "type": "string",
+          "label": {
+            "en": "Observatory (HVO, AVO…)",
+            "fr": "Observatoire (HVO, AVO…)",
+            "de": "Observatorium (HVO, AVO…)",
+            "es": "Observatorio (HVO, AVO…)"
+          }
+        },
+        {
+          "key": "alert_level_name",
+          "type": "string",
+          "label": {
+            "en": "Alert level, in words",
+            "fr": "Niveau d'alerte, en toutes lettres",
+            "de": "Warnstufe, in Worten",
+            "es": "Nivel de alerta, en palabras"
+          }
+        },
+        {
+          "key": "aviation_color_name",
+          "type": "string",
+          "label": {
+            "en": "Aviation color, in words",
+            "fr": "Couleur aviation, en toutes lettres",
+            "de": "Luftfahrtfarbe, in Worten",
+            "es": "Color de aviación, en palabras"
+          }
+        },
+        {
+          "key": "previous_alert_level",
+          "type": "string",
+          "label": {
+            "en": "Previous alert level",
+            "fr": "Niveau d'alerte précédent",
+            "de": "Vorherige Warnstufe",
+            "es": "Nivel de alerta anterior"
+          }
+        },
+        {
+          "key": "previous_aviation_color",
+          "type": "string",
+          "label": {
+            "en": "Previous aviation color",
+            "fr": "Couleur aviation précédente",
+            "de": "Vorherige Luftfahrtfarbe",
+            "es": "Color de aviación anterior"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance (km)",
+            "fr": "Distance (km)",
+            "de": "Entfernung (km)",
+            "es": "Distancia (km)"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          }
+        },
+        {
+          "key": "notice_url",
+          "type": "string",
+          "label": {
+            "en": "USGS notice",
+            "fr": "Bulletin USGS",
+            "de": "USGS-Meldung",
+            "es": "Boletín USGS"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "read_volcanoes",
+      "label": {
+        "en": "USGS volcanoes: read the levels",
+        "fr": "Volcans USGS : lire les niveaux",
+        "de": "USGS-Vulkane: Stufen lesen",
+        "es": "Volcanes USGS: leer los niveles"
       },
-      "timeout_seconds": 15,
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
+      "description": {
+        "en": "The followed volcanoes, and the nearby ones above normal, as one sentence to send by message or read aloud.",
+        "fr": "Les volcans suivis, et les volcans proches au-dessus de la normale, en une phrase à envoyer par message ou à lire.",
+        "de": "Die verfolgten Vulkane und die nahen über normal als ein Satz, per Nachricht zu senden oder vorzulesen.",
+        "es": "Los volcanes seguidos, y los cercanos por encima de lo normal, en una frase para enviar por mensaje o leer en voz alta."
+      },
+      "timeout_seconds": 60,
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "text",
+          "type": "string",
+          "label": {
+            "en": "Levels, in one sentence",
+            "fr": "Niveaux, en une phrase",
+            "de": "Stufen, in einem Satz",
+            "es": "Niveles, en una frase"
+          }
+        },
+        {
+          "key": "max_level",
+          "type": "string",
+          "label": {
+            "en": "Highest level (none, normal…)",
+            "fr": "Niveau le plus haut (none, normal…)",
+            "de": "Höchste Stufe (none, normal…)",
+            "es": "Nivel más alto (none, normal…)"
+          }
+        },
+        {
+          "key": "elevated_count",
+          "type": "number",
+          "label": {
+            "en": "Volcanoes above normal",
+            "fr": "Volcans au-dessus de la normale",
+            "de": "Vulkane über normal",
+            "es": "Volcanes por encima de lo normal"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "volcanoes",
+      "label": {
+        "en": "USGS volcanoes",
+        "fr": "Volcans USGS",
+        "de": "USGS-Vulkane",
+        "es": "Volcanes USGS"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Alert levels of your volcanoes, most active first",
+        "fr": "Niveaux d'alerte de vos volcans, les plus actifs en premier",
+        "de": "Warnstufen deiner Vulkane, die aktivsten zuerst",
+        "es": "Niveles de alerta de sus volcanes, los más activos primero"
+      },
+      "icon": "alert-triangle",
+      "settings": [
+        {
+          "key": "only_elevated",
+          "type": "boolean",
+          "label": {
+            "en": "Only volcanoes above normal",
+            "fr": "Seulement au-dessus de la normale",
+            "de": "Nur Vulkane über normal",
+            "es": "Solo por encima de lo normal"
+          },
+          "default": false
+        },
+        {
+          "key": "show_link",
+          "type": "boolean",
+          "label": {
+            "en": "Link to USGS HANS",
+            "fr": "Lien vers USGS HANS",
+            "de": "Link zu USGS HANS",
+            "es": "Enlace a USGS HANS"
+          },
+          "default": true
+        }
+      ]
     }
   ]
 }
