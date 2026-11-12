@@ -1,67 +1,182 @@
-# Template de démonstration
+# Volcans USGS
 
-Ceci est la documentation utilisateur de l'intégration. Gladys ré-héberge ce
-fichier et affiche un lien **Documentation** permanent vers lui dans l'écran
-de configuration (dans la langue de l'utilisateur, avec l'anglais en repli) —
-c'est au moment de configurer que l'utilisateur en a le plus besoin. Gardez
-les courtes indications d'accueil dans les blocs `section` du `config_schema`
-du manifest ; mettez ici le pas-à-pas détaillé (captures d'écran, dépannage…).
+Suivez depuis Gladys le niveau d'alerte des volcans des États-Unis : Hawaï, l'Alaska, les Cascades, la
+Californie, Yellowstone, les îles Mariannes du Nord et les Samoa américaines. Les cinq observatoires
+volcanologiques de l'[USGS](https://www.usgs.gov/programs/VHP) (United States Geological Survey) évaluent
+chaque volcan surveillé deux fois :
+
+- le **niveau d'alerte volcanique**, pour la population au sol : Normal, Vigilance (Advisory), Veille
+  (Watch), Alerte (Warning) ;
+- le **code couleur aviation**, pour les avions : vert, jaune, orange, rouge.
+
+L'intégration les lit dans [HANS](https://volcanoes.usgs.gov/hans-public/), le système de notification
+public de l'USGS. Ni compte, ni clé d'API.
+
+C'est un complément, pas un système d'alerte de sécurité : en cas d'urgence, suivez les bulletins officiels
+et les consignes des autorités locales. Non affiliée à l'USGS.
 
 ## Ce que vous obtenez
 
-Six appareils de démonstration apparaissent après l'installation : une
-station météo (vraies données Open-Meteo), un interrupteur, une lampe
-variable, une prise connectée avec mesure de puissance, un détecteur de
-mouvement et une caméra.
+- Un **appareil par volcan suivi** : niveau d'alerte, code couleur aviation et dernier bulletin de l'USGS
+  (type, date et, pour les volcans les plus actifs, un résumé d'une ligne), avec leur historique.
+- Un appareil **Volcans proches** : le niveau d'alerte le plus haut des volcans surveillés dans un rayon
+  autour de votre maison, le nombre au-dessus de la normale et le volcan concerné.
+- Un **widget de tableau de bord** qui liste vos volcans, les plus actifs en premier, chacun avec son
+  bulletin et sa page USGS.
+- Un **déclencheur de scène** quand le niveau d'alerte ou le code couleur d'un volcan suivi ou proche change.
+- Une **action de scène** qui lit les niveaux en une phrase, à envoyer par message ou à faire lire à voix
+  haute.
+
+## Prérequis
+
+- Gladys Assistant 5.3 ou plus récent.
+- Un accès à Internet depuis la machine de Gladys (l'intégration lit `volcanoes.usgs.gov`).
+- Pour les volcans proches : une position pour votre maison dans Gladys (Paramètres → Maisons), ou des
+  coordonnées saisies dans la configuration.
 
 ## Configuration
 
-1. Ouvrez l'onglet **Configuration** de l'intégration.
-2. Renseignez la **latitude** et la **longitude** que la station météo de
-   démonstration doit observer (Paris par défaut), et choisissez votre unité
-   de température. L'**intervalle de rafraîchissement** règle la fréquence
-   de lecture de la station météo et de la puissance de la prise : toutes
-   les 5 minutes par défaut, toutes les minutes au plus.
-3. Enregistrez : les appareils apparaissent dans l'onglet **Découverte**,
-   prêts à être ajoutés.
+Installez l'intégration depuis le store (ou Intégrations → Installer depuis GitHub, avec l'adresse
+`https://github.com/guim31/gladys-usgs-volcanoes`), puis ouvrez son onglet Configuration.
 
-Le réglage **Préférer la connexion locale** pilote la prise de
-démonstration : elle affiche en badge le canal réellement utilisé (local ou
-cloud), avec un point orange quand elle fonctionne en mode dégradé (local
-refusé, bascule cloud).
+### Réglages
 
-## Actions
+| Réglage                        | Défaut     | Effet                                                                        |
+| ------------------------------ | ---------- | ---------------------------------------------------------------------------- |
+| Volcans suivis                 | vide       | Noms, numéros de volcan ou codes d'observatoire, séparés par des virgules    |
+| Volcans proches : rayon        | 200 km     | Désactivé, 50, 100, 200, 500 ou 1 000 km autour du centre                    |
+| Latitude du centre             | vide       | Laissez les deux coordonnées vides pour utiliser la position de votre maison |
+| Longitude du centre            | vide       | Degrés décimaux, ouest négatif (`-121.7603`)                                 |
+| Intervalle de rafraîchissement | 15 minutes | 10, 15, 30 ou 60 minutes                                                     |
+| Langue des textes              | Français   | Noms des appareils et fonctionnalités (à la création) et textes des scènes   |
 
-- **Tester le fournisseur météo** — effectue une requête en direct vers
-  Open-Meteo et affiche la température et l'humidité actuelles sous le
-  bouton.
-- **Identifier un appareil** — choisissez un de vos appareils dans la liste
-  et il se signale (la lampe de démonstration « clignote » dans les logs).
+Enregistrez, puis ouvrez l'onglet Découverte : un appareil par volcan suivi, plus **Volcans proches** si un
+rayon est choisi. Ajoutez à Gladys ceux que vous voulez.
 
-## Scènes
+### Choisir les volcans
 
-L'intégration ajoute ses propres cartes à l'éditeur de scènes (Gladys 5.1
-ou plus récent), dans la catégorie **Intégrations** :
+Saisissez les noms comme l'USGS les écrit, séparés par des virgules. Majuscules, accents et
+« Mount »/« Mt » n'ont pas d'importance : `kilauea`, `Kīlauea`, `St. Helens` et `mt rainier` fonctionnent,
+de même qu'une partie d'un seul nom (`shasta`). Une partie commune à plusieurs volcans (`sitkin` : Great
+Sitkin et Little Sitkin) est ambiguë et ignorée. Vous pouvez aussi saisir le numéro Smithsonian du volcan
+(`332010`) ou un code d'observatoire pour suivre tous ses volcans. L'onglet Configuration liste les noms
+introuvables.
 
-- **Mouvement détecté** (déclencheur) — lance la scène quand un détecteur
-  de démonstration voit bouger quelque chose. Choisissez éventuellement le
-  détecteur et ce qui a bougé (personne, animal) ; laissés vides, toute
-  détection correspond. Les actions suivantes peuvent lire ce qui a bougé
-  avec `{{triggerEvent.data.target}}`.
-- **Identifier un appareil** (action) — fait se signaler l'appareil choisi.
-  Elle indique si l'appareil a pu se signaler, pour que les actions
-  suivantes puissent en dépendre.
+Les volcans surveillés au 12/11/2026, par observatoire :
 
-## Tableau de bord
+- `avo`, Alaska Volcano Observatory : Akutan, Aniakchak, Atka volcanic complex, Augustine, Cleveland,
+  Dutton, Edgecumbe, Fisher, Gareloi, Great Sitkin, Griggs, Iliamna, Isanotski, Kanaga, Katmai, Korovin,
+  Little Sitkin, Mageik, Makushin, Martin, Novarupta, Okmok, Pavlof, Redoubt, Semisopochnoi, Shishaldin,
+  Snowy Mountain, Spurr, Takawangha, Tanaga, Trident, Ugashik-Peulik, Ukinrek Maars, Veniaminof, Westdahl,
+  Wrangell.
+- `calvo`, California Volcano Observatory : Clear Lake Volcanic Field, Coso Volcanic Field, Lassen
+  Volcanic Center, Long Valley Caldera, Mammoth Mountain, Medicine Lake volcano, Mono Lake Volcanic Field,
+  Mono-Inyo Craters, Mount Shasta, Salton Buttes, Ubehebe Craters.
+- `cvo`, Cascades Volcano Observatory : Crater Lake, Glacier Peak, Mount Adams, Mount Baker, Mount Hood,
+  Mount Jefferson, Mount Rainier, Mount St. Helens, Newberry, Three Sisters.
+- `hvo`, Hawaiian Volcano Observatory : Haleakala, Hualalai, Kilauea, Mauna Kea, Mauna Loa, et aux Samoa
+  américaines Ofu-Olosega, Ta'u Island, Tutuila Island.
+- `nmi`, îles Mariannes du Nord : Ahyi Seamount.
+- `yvo`, Yellowstone Volcano Observatory : Yellowstone.
 
-Ajoutez le widget **État de la démo** à un tableau de bord : il affiche en
-direct la température de la station météo et la puissance de la prise du
-bureau, la connexion utilisée par la prise (en orange si dégradée) et la
-position observée. Son bouton **Identifier la lampe** fait se signaler la
-lampe de démonstration.
+Les autres volcans américains n'ont pas de niveau d'alerte (pas de surveillance en temps réel) : ils ne
+peuvent pas être suivis.
+
+## Appareils
+
+Chaque volcan suivi est un appareil à son nom (« Volcan Kilauea ») :
+
+| Fonctionnalité             | Valeurs                                                      |
+| -------------------------- | ------------------------------------------------------------ |
+| Niveau d'alerte volcanique | 0 Normal, 1 Vigilance, 2 Veille, 3 Alerte (niveau de risque) |
+| Code couleur aviation      | 0 vert, 1 jaune, 2 orange, 3 rouge (niveau de risque)        |
+| Dernier bulletin USGS      | « Bulletin quotidien, 11/11/2026: … » — type, date, résumé   |
+
+**Volcans proches** résume les volcans surveillés dans le rayon :
+
+| Fonctionnalité                  | Valeurs                                                    |
+| ------------------------------- | ---------------------------------------------------------- |
+| Niveau d'alerte le plus haut    | 0 à 3, comme ci-dessus                                     |
+| Volcans au-dessus de la normale | nombre de volcans au-dessus de Normal ou de vert           |
+| Volcan le plus actif            | « Mount Rainier : Veille / Orange, à 94 km », ou « aucun » |
+
+Les niveaux d'alerte ont une valeur numérique : une condition de scène « niveau d'alerte supérieur ou égal
+à 2 » réagit à Veille et Alerte, les cas où l'USGS juge une éruption probable ou en cours. L'historique de
+la fonctionnalité de niveau d'alerte donne la date de chaque changement.
+
+## Widget de tableau de bord
+
+Ajoutez le widget **Volcans USGS** à un tableau de bord : le nombre de volcans au-dessus de la normale,
+puis vos volcans suivis et les volcans proches au-dessus de la normale (8 au plus), les plus actifs en
+premier. Chaque ligne montre le code couleur aviation, l'observatoire et la distance ; touchez-la pour le
+dernier bulletin, son résumé, la date du dernier changement de niveau (dès que l'intégration en a vu un) et
+les liens vers le bulletin et la page du volcan.
+
+Deux réglages : **Seulement au-dessus de la normale** masque les volcans calmes, **Lien vers USGS HANS**
+affiche ou masque le bouton du bas.
+
+## Déclencheurs de scène
+
+**Volcan USGS : niveau d'alerte changé** se déclenche quand le niveau d'alerte ou le code couleur aviation
+d'un volcan suivi, ou d'un volcan dans le rayon, change. Filtres, tous facultatifs : le nouveau niveau
+d'alerte, la nouvelle couleur aviation et le sens (en hausse ou en baisse).
+
+Variables : `alert_level`, `aviation_color` et `direction` (mots anglais stables), `volcano`, `vnum`,
+`observatory`, `alert_level_name` et `aviation_color_name` (dans la langue de la configuration),
+`previous_alert_level`, `previous_aviation_color`, `distance_km` (vide sans centre), `summary`
+(« Kilauea : Veille / Orange, à 4 317 km ») et `notice_url`.
+
+Les niveaux déjà là au premier démarrage ne déclenchent rien, pas plus qu'un volcan que vous commencez à
+suivre : seuls comptent les changements vus par l'intégration. Les derniers niveaux sont gardés : un changement survenu pendant un arrêt de l'intégration se déclenche au démarrage suivant, rien d'autre.
+
+## Action de scène
+
+**Volcans USGS : lire les niveaux** relit HANS si besoin et renvoie :
+
+- `text` : une phrase, par exemple « 1 volcan au-dessus de la normale : Kilauea : Vigilance / Jaune ;
+  Mount Rainier : Normal / Vert, à 94 km. » (5 volcans au plus, puis « et N de plus ») ;
+- `max_level` : `none`, `normal`, `advisory`, `watch` ou `warning` ;
+- `elevated_count` : le nombre de volcans au-dessus de la normale.
+
+Le bouton **Afficher les niveaux actuels** de l'onglet Configuration donne la même phrase.
+
+## Exemples de scènes
+
+- Recevoir un message quand un volcan proche passe en Veille ou en Alerte : déclencheur « Volcan USGS :
+  niveau d'alerte changé », filtres « Veille, Alerte » et « En hausse », puis envoyer `summary` et
+  `notice_url`.
+- Chaque matin, lire les niveaux à voix haute : déclencheur planifié, action « Volcans USGS : lire les
+  niveaux », puis dire `text`.
+- Allumer une lampe en orange tant que le Mount Rainier est au-dessus de la normale : condition sur son
+  appareil de niveau d'alerte.
+
+## Sources des données, conditions et quotas
+
+Les données viennent du Volcano Hazards Program de l'USGS, par l'API publique HANS
+(`https://volcanoes.usgs.gov/hans-public/api/`) : les volcans surveillés et leurs niveaux à chaque
+rafraîchissement, les résumés des plus actifs (alertes CAP) et la position des volcans américains une fois
+par jour. Les données de l'USGS sont dans le domaine public ; l'intégration cite la source dans le widget.
+HANS ne publie pas de quota : l'intégration demande au plus trois petits documents par rafraîchissement,
+toutes les 15 minutes par défaut.
+
+Lisez les [niveaux d'alerte expliqués par l'USGS](https://www.usgs.gov/programs/VHP/about-alert-levels)
+(en anglais).
 
 ## Dépannage
 
-L'intégration journalise tout ce qu'elle fait : consultez les logs de
-l'intégration depuis l'interface Gladys (ou `docker logs` sur l'hôte) avec
-`LOG_LEVEL=debug` pour le détail complet.
+- **« Introuvable parmi les volcans surveillés, ou ambigu »** : vérifiez l'orthographe dans la liste
+  ci-dessus, ou saisissez le numéro du volcan. Un volcan sans surveillance en temps réel n'a pas de niveau.
+- **« Aucun centre pour les volcans proches »** : indiquez la position de votre maison dans Gladys, ou
+  saisissez des coordonnées.
+- **« L'USGS (HANS) ne répond pas »** : les valeurs restent les mêmes ; l'intégration réessaie au
+  rafraîchissement suivant. Vérifiez l'accès à Internet de la machine de Gladys.
+- **Pas de nouvel appareil après un changement de la liste** : ouvrez l'onglet Découverte et ajoutez-le.
+- Lancez le conteneur avec `LOG_LEVEL=debug` pour voir chaque rafraîchissement dans ses logs.
+
+## Limites
+
+- Seulement les volcans des États-Unis surveillés par l'USGS ; les niveaux sont ceux du dernier bulletin.
+- La date du dernier changement de niveau n'est connue que par l'observation de l'intégration (HANS ne la
+  donne pas) ; l'historique de la fonctionnalité dans Gladys la garde.
+- Les bulletins et résumés sont en anglais, comme l'USGS les écrit.
+- Le nom d'un appareil et de ses fonctionnalités est fixé à sa création, dans la langue choisie alors.

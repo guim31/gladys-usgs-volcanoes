@@ -30,6 +30,13 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration stores one file under `/data`: the last alert level and
+aviation color code seen for each monitored volcano (public data), so a restart
+fires no scene trigger. It holds no secret and asks for no account. It reads the
+location of the house from Gladys (or coordinates typed in the configuration)
+to compute distances, and never sends it anywhere nor writes it to the logs.
+Its only network traffic is HTTPS requests to `volcanoes.usgs.gov`.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and the USGS services the integration reads.

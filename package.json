@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-usgs-volcanoes",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Gladys Assistant integration: alert levels and aviation color codes of the US volcanoes monitored by the USGS (HANS), with nearby volcanoes, widget and scene trigger.",
   "type": "module",
   "main": "index.js",
   "scripts": {
