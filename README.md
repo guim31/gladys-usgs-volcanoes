@@ -52,8 +52,9 @@ Gladys core ── devices, states,           volcano/getUSVolcanoes          on
   core does not poll external devices reliably, GladysAssistant/Gladys#3198).
 - Names typed by the user are matched against the HANS names (case, accents and "Mount" ignored), the
   Smithsonian volcano numbers (the stable device ids), the USGS volcano codes and the observatory codes.
-- The last level of every monitored volcano is kept under `/data`: a restart fires no trigger, and a
-  volcano newly followed neither.
+- The last level of every monitored volcano is kept under `/data`: a restart fires no trigger for a
+  change already seen (one that happened while stopped fires at the next start), and a newly followed
+  volcano fires nothing.
 
 ## Limitations
 

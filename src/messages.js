@@ -7,7 +7,7 @@
 // -----------------------------------------------------------------------------
 
 import { WIDGET_COLORS } from '@gladysassistant/integration-sdk';
-import { LANGUAGES } from './config.js';
+import { LANGUAGES, levelRank } from './config.js';
 
 export const LEVEL_NAMES = {
   en: { normal: 'Normal', advisory: 'Advisory', watch: 'Watch', warning: 'Warning' },
@@ -70,6 +70,7 @@ export const LEVEL_COLORS = {
 export const PHRASES = {
   en: {
     noNotice: 'No USGS notice yet',
+    unrated: 'Not rated',
     noneNearby: 'No volcano above normal nearby',
     level: ({ level, color }) => `${level} / ${color}`,
     item: ({ name, level }) => `${name}: ${level}`,
@@ -87,6 +88,7 @@ export const PHRASES = {
   },
   fr: {
     noNotice: 'Aucun bulletin USGS pour le moment',
+    unrated: 'Non évalué',
     noneNearby: 'Aucun volcan au-dessus de la normale à proximité',
     level: ({ level, color }) => `${level} / ${color}`,
     item: ({ name, level }) => `${name} : ${level}`,
@@ -104,6 +106,7 @@ export const PHRASES = {
   },
   de: {
     noNotice: 'Noch keine USGS-Meldung',
+    unrated: 'Nicht bewertet',
     noneNearby: 'Kein Vulkan über normal in der Nähe',
     level: ({ level, color }) => `${level} / ${color}`,
     item: ({ name, level }) => `${name}: ${level}`,
@@ -121,6 +124,7 @@ export const PHRASES = {
   },
   es: {
     noNotice: 'Aún no hay boletín del USGS',
+    unrated: 'Sin evaluar',
     noneNearby: 'Ningún volcán por encima de lo normal cerca',
     level: ({ level, color }) => `${level} / ${color}`,
     item: ({ name, level }) => `${name}: ${level}`,
@@ -245,9 +249,11 @@ export const clip = (text, max) => (text.length <= max ? text : `${text.slice(0,
 
 /** "Advisory / Yellow", in words. */
 export function levelText(volcano, language) {
+  // HANS may give no level or colour ("UNASSIGNED").
+  const unrated = PHRASES[language].unrated;
   return PHRASES[language].level({
-    level: LEVEL_NAMES[language][volcano.level],
-    color: COLOR_NAMES[language][volcano.color] ?? '?',
+    level: LEVEL_NAMES[language][volcano.level] ?? unrated,
+    color: COLOR_NAMES[language][volcano.color] ?? unrated,
   });
 }
 
@@ -290,7 +296,7 @@ export function sentence(volcanoes, language) {
   if (volcanoes.length === 0) {
     return p.nothing;
   }
-  const count = volcanoes.filter((volcano) => volcano.level !== 'normal').length;
+  const count = volcanoes.filter((volcano) => levelRank(volcano.level) > 0).length;
   const items = volcanoes
     .slice(0, SENTENCE_VOLCANOES)
     .map((volcano) => describe(volcano, language));

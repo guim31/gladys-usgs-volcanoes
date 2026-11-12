@@ -254,3 +254,37 @@ test('a scan request publishes the devices again', async (t) => {
   await w.fake.scanRequest();
   assert.equal(w.fake.bodies('POST', '/discovered_device').length, before + 1);
 });
+
+test('a volcano without a known level is "not rated", never "undefined"', async (t) => {
+  const api = createApi();
+  api.row(KILAUEA).alert_level = 'UNASSIGNED';
+  api.row(KILAUEA).color_code = 'UNASSIGNED';
+  const w = await world(t, { api, config: { volcanoes: 'Kilauea', language: 'en' } });
+  await createAll(w);
+  assert.equal(
+    w.monitor.sentence('en'),
+    'No volcano above normal: Kilauea: Not rated / Not rated, 4,317 km.',
+  );
+  assert.equal(lastValue(w, deviceOf(w, KILAUEA), 'alert_level'), undefined);
+});
+
+test('without the positions, the nearby device publishes no false "all clear"', async (t) => {
+  const api = createApi();
+  api.down = 403;
+  api.downOnly = 'us';
+  const w = await world(t, { api, config: { radius: '200' } });
+  await createAll(w);
+  assert.equal(lastValue(w, nearbyOf(w), 'highest_level'), undefined);
+  api.down = false;
+  await cycle(w, 24 * 60);
+  assert.equal(lastValue(w, nearbyOf(w), 'highest_level'), 0);
+});
+
+test('HANS down after a good cycle: the scene action fails rather than read old levels', async (t) => {
+  const api = createApi();
+  const w = await world(t, { api });
+  api.down = 503;
+  await cycle(w);
+  const result = await w.fake.sceneAction('read_volcanoes', {});
+  assert.equal(result.success, false);
+});

@@ -14,6 +14,7 @@
 // Budget: 2 texts, 1 card-list, 1 button.
 // -----------------------------------------------------------------------------
 
+import { levelRank } from './config.js';
 import { HANS_SITE } from './hans.js';
 import { volcanoIds } from './device.js';
 import {
@@ -118,7 +119,7 @@ export const WIDGETS = {
       const updated = monitor.lastSuccessAt;
       const source = t(TEXT.source, lang);
       const shown = monitor.shown();
-      const elevated = shown.filter((v) => v.level && v.level !== 'normal');
+      const elevated = shown.filter((v) => levelRank(v.level) > 0);
       const listed = onlyElevated ? elevated : shown;
       const components = [
         {

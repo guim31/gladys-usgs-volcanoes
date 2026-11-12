@@ -448,7 +448,8 @@ export class Monitor {
   // --- States ------------------------------------------------------------------
 
   statesOf() {
-    if (this.lastSuccessAt === null) {
+    // HANS down: the old values are not renewed by the heartbeat as if fresh.
+    if (this.lastSuccessAt === null || this.failing.has('hans')) {
       return [];
     }
     const language = this.config.language;
@@ -471,7 +472,13 @@ export class Monitor {
         text: latestNoticeText(volcano, language),
       });
     }
-    if (created.nearby && this.config.radiusKm > 0 && (this.config.center || this.house)) {
+    // Without the positions, every distance is unknown: no false "all clear".
+    if (
+      created.nearby &&
+      this.config.radiusKm > 0 &&
+      (this.config.center || this.house) &&
+      this.positions.size > 0
+    ) {
       const ids = nearbyIds(this.gladys);
       const elevated = this.nearby.filter(isElevated);
       const top = elevated[0];
@@ -572,7 +579,11 @@ export class Monitor {
     } else {
       await this.running;
     }
-    return { volcanoes: this.shown(), ok: this.lastSuccessAt !== null };
+    // The last cycle failed: the levels are not current, the actions say so.
+    return {
+      volcanoes: this.shown(),
+      ok: this.lastSuccessAt !== null && !this.failing.has('hans'),
+    };
   }
 
   /** The sentence of the actions. */

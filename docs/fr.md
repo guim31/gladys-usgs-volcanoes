@@ -127,7 +127,7 @@ Variables : `alert_level`, `aviation_color` et `direction` (mots anglais stables
 (« Kilauea : Veille / Orange, à 4 317 km ») et `notice_url`.
 
 Les niveaux déjà là au premier démarrage ne déclenchent rien, pas plus qu'un volcan que vous commencez à
-suivre : seuls comptent les changements vus par l'intégration. Un redémarrage ne déclenche rien non plus.
+suivre : seuls comptent les changements vus par l'intégration. Les derniers niveaux sont gardés : un changement survenu pendant un arrêt de l'intégration se déclenche au démarrage suivant, rien d'autre.
 
 ## Action de scène
 

@@ -126,7 +126,7 @@ Variables: `alert_level`, `aviation_color` y `direction` (palabras inglesas esta
 («Kilauea: Vigilancia / Naranja, a 4317 km») y `notice_url`.
 
 Los niveles ya presentes en el primer arranque no disparan nada, como tampoco un volcán que empieza a
-seguir: solo cuentan los cambios vistos por la integración. Un reinicio tampoco dispara nada.
+seguir: solo cuentan los cambios vistos por la integración. Los últimos niveles se conservan: un cambio ocurrido mientras la integración está detenida se dispara en el siguiente arranque, nada más.
 
 ## Acción de escena
 

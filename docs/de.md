@@ -126,7 +126,7 @@ Variablen: `alert_level`, `aviation_color` und `direction` (feste englische Wör
 („Kilauea: Beobachtung / Orange, 4.317 km entfernt“) und `notice_url`.
 
 Die beim ersten Start schon vorhandenen Stufen lösen nichts aus, ebenso wenig ein Vulkan, den du neu
-verfolgst: Nur die von der Integration gesehenen Änderungen zählen. Ein Neustart löst auch nichts aus.
+verfolgst: Nur die von der Integration gesehenen Änderungen zählen. Die letzten Stufen bleiben gespeichert: Eine Änderung, während die Integration gestoppt ist, löst beim nächsten Start aus, sonst nichts.
 
 ## Szenen-Aktion
 

@@ -35,28 +35,37 @@ export function registerHandlers(gladys, options = {}) {
     resolveReady = resolve;
   });
   let started = false;
+  // The start in progress: a second `connected` event waits for it.
+  let starting = null;
   const whenReady =
     (fn) =>
     async (...args) => {
       await ready;
+      if (!started) {
+        // The start failed: tried again at the next connection.
+        throw new Error('The integration is not started yet');
+      }
       return fn(...args);
     };
 
   gladys.on('connected', async () => {
     try {
+      await starting;
       const config = normalizeConfig(await gladys.getConfig());
       if (started) {
         // A reconnection (Gladys restarted): publish everything again.
         await monitor.resync(config);
         return;
       }
-      await monitor.start(config);
+      starting = monitor.start(config);
+      await starting;
       // Only now: a failed start is tried again at the next connection.
       started = true;
     } catch (err) {
       logger.error('Initialization failed', err);
       await gladys.setConnectionStatus(false, render(STATUS, 'initFailed')).catch(() => {});
     } finally {
+      starting = null;
       resolveReady();
     }
   });

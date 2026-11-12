@@ -121,7 +121,7 @@ Variables: `alert_level`, `aviation_color` and `direction` (stable English words
 ("Kilauea: Watch / Orange, 4,317 km") and `notice_url`.
 
 The levels already there at the first start fire nothing, and neither does a volcano you start to follow:
-only the changes seen by the integration count. A restart fires nothing either.
+only the changes seen by the integration count. The last levels are kept: a change that happens while the integration is stopped fires at the next start, nothing else does.
 
 ## Scene action
 
