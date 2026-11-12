@@ -50,17 +50,21 @@ export function registerHandlers(gladys, options = {}) {
 
   gladys.on('connected', async () => {
     try {
-      await starting;
-      const config = normalizeConfig(await gladys.getConfig());
-      if (started) {
-        // A reconnection (Gladys restarted): publish everything again.
-        await monitor.resync(config);
+      if (starting) {
+        await starting;
+      } else if (!started) {
+        // Set before the first await: a second event cannot start twice.
+        starting = (async () => monitor.start(normalizeConfig(await gladys.getConfig())))();
+        await starting;
+        // Only now: a failed start is tried again at the next connection.
+        started = true;
         return;
       }
-      starting = monitor.start(config);
-      await starting;
-      // Only now: a failed start is tried again at the next connection.
-      started = true;
+      if (started) {
+        // A reconnection (Gladys restarted): publish everything again.
+        await monitor.resync(normalizeConfig(await gladys.getConfig()));
+        return;
+      }
     } catch (err) {
       logger.error('Initialization failed', err);
       await gladys.setConnectionStatus(false, render(STATUS, 'initFailed')).catch(() => {});
