@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-12
+
 ### Added
 
 - One device per followed US volcano (names, volcano numbers or observatory
@@ -23,3 +25,6 @@ the notes of the version's GitHub Release.
   nearby volcano changes, and a scene action reading the levels as one
   sentence.
 - Texts and documentation in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-usgs-volcanoes/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-usgs-volcanoes/releases/tag/v1.0.0
